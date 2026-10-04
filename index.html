@@ -3,49 +3,129 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Events in Motion — Work in Progress</title>
+    <meta name="description" content="Weather Within — an interactive interface shaped by pointer, keyboard, touch, window, and time events." />
+    <title>Weather Within — Events in Motion</title>
     <link rel="stylesheet" href="style.css" />
   </head>
-  <body>
-    <header>
-      <p class="tag">Lab 2 · Work in Progress</p>
-      <h1>Events in Motion</h1>
-      <p>A simple webpage that will respond to different user actions.</p>
+  <body data-mood="calm">
+    <div class="noise" aria-hidden="true"></div>
+    <div class="cursor-glow" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <a class="wordmark" href="#top" aria-label="Weather Within home">
+        <span class="mark"></span>
+        Weather Within
+      </a>
+      <div class="system-readout" aria-label="System status">
+        <span class="status-dot"></span>
+        <span id="clock">00:00:00</span>
+        <span class="divider"></span>
+        <span id="viewport">0 × 0</span>
+      </div>
     </header>
 
-    <main>
-      <section class="demo">
-        <div class="circle" id="circle"></div>
-        <h2 id="message">Click the button to begin.</h2>
-        <button id="change-button" type="button">Change colour</button>
+    <main id="top">
+      <section class="hero" aria-labelledby="main-title">
+        <div class="hero-copy">
+          <p class="kicker">An interface that listens</p>
+          <h1 id="main-title">What is the<br /><em>weather</em> inside?</h1>
+          <p class="lede" id="mood-line">Move slowly. The room is paying attention.</p>
+        </div>
+
+        <div class="orbital-stage" aria-label="Interactive weather control">
+          <button class="orb" id="orb" type="button" aria-label="Send a pulse">
+            <span class="orb-core"></span>
+            <span class="orb-ring ring-one"></span>
+            <span class="orb-ring ring-two"></span>
+            <span class="orb-label">Touch<br />the air</span>
+          </button>
+          <p class="coordinate" aria-hidden="true">X <span id="x-value">50</span> / Y <span id="y-value">50</span></p>
+        </div>
       </section>
 
-      <section class="plan">
-        <h2>Interaction Plan</h2>
-        <div class="cards">
-          <article class="done">
-            <span>Done</span>
-            <h3>Click Event</h3>
-            <p>The button changes the circle and page message.</p>
+      <section class="controls" aria-labelledby="controls-title">
+        <div class="section-heading">
+          <p class="kicker">Four ways to respond</p>
+          <h2 id="controls-title">Your actions change the room.</h2>
+        </div>
+
+        <div class="instruction-grid">
+          <article class="instruction-card">
+            <span class="card-number">01</span>
+            <div>
+              <h3>Move</h3>
+              <p>Guide the light with your pointer.</p>
+            </div>
+            <span class="mini-icon move-icon" aria-hidden="true"></span>
           </article>
 
-          <article>
-            <span>TODO</span>
-            <h3>Mouse Event</h3>
-            <p>Add an element that follows the mouse.</p>
+          <article class="instruction-card">
+            <span class="card-number">02</span>
+            <div>
+              <h3>Touch</h3>
+              <p>Click the orb to send a signal.</p>
+            </div>
+            <span class="mini-icon touch-icon" aria-hidden="true"></span>
           </article>
 
-          <article>
-            <span>TODO</span>
-            <h3>Keyboard Event</h3>
-            <p>Use keyboard keys to change the page.</p>
+          <article class="instruction-card keyboard-card">
+            <span class="card-number">03</span>
+            <div>
+              <h3>Choose</h3>
+              <p>Press a number to shift the atmosphere.</p>
+            </div>
+            <div class="key-row" aria-label="Mood keyboard controls">
+              <button class="mood-key active" type="button" data-key="1" data-mood="calm">1</button>
+              <button class="mood-key" type="button" data-key="2" data-mood="warm">2</button>
+              <button class="mood-key" type="button" data-key="3" data-mood="storm">3</button>
+              <button class="mood-key" type="button" data-key="4" data-mood="night">4</button>
+            </div>
           </article>
+
+          <article class="instruction-card">
+            <span class="card-number">04</span>
+            <div>
+              <h3>Pause</h3>
+              <p>Press space to pause or resume time.</p>
+            </div>
+            <button class="space-key" id="pause-button" type="button">Space</button>
+          </article>
+        </div>
+      </section>
+
+      <section class="weather-panel" aria-labelledby="weather-title">
+        <div class="weather-summary">
+          <p class="kicker">Current atmosphere</p>
+          <h2 id="weather-title"><span id="mood-name">Calm</span>, with a chance of becoming.</h2>
+        </div>
+
+        <div class="reading-grid">
+          <div class="reading">
+            <span>Light</span>
+            <strong id="light-reading">Soft</strong>
+          </div>
+          <div class="reading">
+            <span>Motion</span>
+            <strong id="motion-reading">Drifting</strong>
+          </div>
+          <div class="reading">
+            <span>Signals</span>
+            <strong id="signal-count">00</strong>
+          </div>
+        </div>
+
+        <div class="event-log" aria-live="polite">
+          <span>Latest event</span>
+          <p id="event-message">The room is waiting for you.</p>
         </div>
       </section>
     </main>
 
-    <footer>More interactions coming soon.</footer>
+    <footer>
+      <p>Built with DOM manipulation, event listeners, and the Browser Object Model.</p>
+      <a href="#top">Return to the atmosphere ↑</a>
+    </footer>
+
     <script src="script.js"></script>
   </body>
 </html>
-  
