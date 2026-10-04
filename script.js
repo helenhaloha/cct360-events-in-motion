@@ -1,153 +1,103 @@
-const root = document.documentElement;
 const body = document.body;
-const orb = document.querySelector("#orb");
+const stage = document.querySelector("#stage");
+const shape = document.querySelector("#shape");
+const clickCount = document.querySelector("#click-count");
+const coordinates = document.querySelector("#coordinates");
+const message = document.querySelector("#message");
 const clock = document.querySelector("#clock");
-const viewport = document.querySelector("#viewport");
-const xValue = document.querySelector("#x-value");
-const yValue = document.querySelector("#y-value");
-const moodName = document.querySelector("#mood-name");
-const moodLine = document.querySelector("#mood-line");
-const lightReading = document.querySelector("#light-reading");
-const motionReading = document.querySelector("#motion-reading");
-const signalCount = document.querySelector("#signal-count");
-const eventMessage = document.querySelector("#event-message");
+const windowSize = document.querySelector("#window-size");
 const pauseButton = document.querySelector("#pause-button");
-const moodKeys = [...document.querySelectorAll(".mood-key")];
+const moodButtons = [...document.querySelectorAll(".mood-button")];
 
-const moods = {
-  calm: {
-    name: "Calm",
-    line: "Move slowly. The room is paying attention.",
-    light: "Soft",
-    motion: "Drifting",
-  },
-  warm: {
-    name: "Warm",
-    line: "A little heat changes the shape of everything.",
-    light: "Golden",
-    motion: "Rising",
-  },
-  storm: {
-    name: "Storm",
-    line: "Pressure gathers. The room leans closer.",
-    light: "Electric",
-    motion: "Restless",
-  },
-  night: {
-    name: "Night",
-    line: "Darkness makes the smallest signals brighter.",
-    light: "Low",
-    motion: "Orbiting",
-  },
+const moodMessages = {
+  calm: "Calm mode selected. The page feels soft and quiet.",
+  sunny: "Sunny mode selected. The page feels bright and warm.",
+  rainy: "Rainy mode selected. The page feels cool and relaxed.",
+  night: "Night mode selected. The page is ready for late-night ideas.",
 };
 
-let signals = 0;
-let paused = false;
-let lastPointerUpdate = 0;
+let totalClicks = 0;
+let clockPaused = false;
 
-function announce(message) {
-  eventMessage.textContent = message;
+function showMessage(text) {
+  message.textContent = text;
 }
 
-function updateViewport() {
-  viewport.textContent = `${window.innerWidth} × ${window.innerHeight}`;
-  announce(`Window measured at ${window.innerWidth} by ${window.innerHeight} pixels.`);
+function selectMood(theme, source) {
+  body.dataset.theme = theme;
+
+  moodButtons.forEach((button) => {
+    const selected = button.dataset.theme === theme;
+    button.classList.toggle("active", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  });
+
+  showMessage(`${source}: ${moodMessages[theme]}`);
+}
+
+function movePointer(event) {
+  const box = stage.getBoundingClientRect();
+  const x = Math.max(0, Math.min(100, ((event.clientX - box.left) / box.width) * 100));
+  const y = Math.max(0, Math.min(100, ((event.clientY - box.top) / box.height) * 100));
+
+  stage.style.setProperty("--pointer-x", `${x}%`);
+  stage.style.setProperty("--pointer-y", `${y}%`);
+  coordinates.textContent = `${Math.round(x)}, ${Math.round(y)}`;
+  showMessage("Pointer event: the dot followed your movement.");
+}
+
+function changeShape() {
+  totalClicks += 1;
+  clickCount.textContent = totalClicks;
+
+  const sizes = ["size-one", "size-two", "size-three"];
+  shape.classList.remove(...sizes);
+  shape.classList.add(sizes[totalClicks % sizes.length]);
+
+  showMessage(`Click event: the circle has been clicked ${totalClicks} time${totalClicks === 1 ? "" : "s"}.`);
 }
 
 function updateClock() {
-  if (paused) return;
+  if (clockPaused) return;
   clock.textContent = new Date().toLocaleTimeString("en-CA", { hour12: false });
 }
 
-function setMood(mood, source = "keyboard") {
-  const selected = moods[mood];
-  if (!selected) return;
-
-  body.dataset.mood = mood;
-  moodName.textContent = selected.name;
-  moodLine.textContent = selected.line;
-  lightReading.textContent = selected.light;
-  motionReading.textContent = selected.motion;
-
-  moodKeys.forEach((button) => {
-    const isActive = button.dataset.mood === mood;
-    button.classList.toggle("active", isActive);
-    button.setAttribute("aria-pressed", String(isActive));
-  });
-
-  announce(`${source === "keyboard" ? "Key" : "Control"} changed the atmosphere to ${selected.name}.`);
+function toggleClock() {
+  clockPaused = !clockPaused;
+  body.classList.toggle("clock-paused", clockPaused);
+  pauseButton.textContent = clockPaused ? "Resume clock (Space)" : "Pause clock (Space)";
+  pauseButton.setAttribute("aria-pressed", String(clockPaused));
+  showMessage(clockPaused ? "Keyboard event: the clock is paused." : "Keyboard event: the clock is running again.");
+  updateClock();
 }
 
-function moveLight(clientX, clientY) {
-  const x = Math.round((clientX / window.innerWidth) * 100);
-  const y = Math.round((clientY / window.innerHeight) * 100);
-  root.style.setProperty("--pointer-x", `${x}%`);
-  root.style.setProperty("--pointer-y", `${y}%`);
-  root.style.setProperty("--wind-x", `${(x - 50) * 0.09}deg`);
-  xValue.textContent = String(x).padStart(2, "0");
-  yValue.textContent = String(y).padStart(2, "0");
-
-  const now = Date.now();
-  if (now - lastPointerUpdate > 900) {
-    announce(`Pointer moved the light to ${x}, ${y}.`);
-    lastPointerUpdate = now;
-  }
+function updateWindowSize() {
+  windowSize.textContent = `${window.innerWidth} × ${window.innerHeight}`;
+  showMessage("Window event: the browser size was updated.");
 }
 
-function sendSignal(event) {
-  signals += 1;
-  signalCount.textContent = String(signals).padStart(2, "0");
-  orb.classList.remove("pulsing");
-  void orb.offsetWidth;
-  orb.classList.add("pulsing");
+stage.addEventListener("pointermove", movePointer);
+shape.addEventListener("click", changeShape);
+pauseButton.addEventListener("click", toggleClock);
+window.addEventListener("resize", updateWindowSize);
 
-  for (let index = 0; index < 8; index += 1) {
-    const particle = document.createElement("span");
-    const angle = (Math.PI * 2 * index) / 8;
-    const distance = 105 + Math.random() * 75;
-    particle.className = "signal";
-    orb.appendChild(particle);
-    particle.animate(
-      [
-        { opacity: 1, transform: "translate(-50%, -50%) scale(1)" },
-        { opacity: 0, transform: `translate(calc(-50% + ${Math.cos(angle) * distance}px), calc(-50% + ${Math.sin(angle) * distance}px)) scale(.2)` },
-      ],
-      { duration: 700, easing: "cubic-bezier(.2,.8,.2,1)" }
-    ).onfinish = () => particle.remove();
-  }
-
-  if (navigator.vibrate) navigator.vibrate(35);
-  announce(`${event.type === "click" ? "Click" : "Touch"} sent signal ${String(signals).padStart(2, "0")} into the room.`);
-}
-
-function toggleTime() {
-  paused = !paused;
-  body.classList.toggle("time-paused", paused);
-  pauseButton.textContent = paused ? "Resume" : "Space";
-  pauseButton.setAttribute("aria-pressed", String(paused));
-  announce(paused ? "Time paused. The room is holding still." : "Time resumed. The room is listening again.");
-  if (!paused) updateClock();
-}
-
-window.addEventListener("pointermove", (event) => moveLight(event.clientX, event.clientY), { passive: true });
-window.addEventListener("resize", updateViewport);
+moodButtons.forEach((button) => {
+  button.addEventListener("click", () => selectMood(button.dataset.theme, "Button event"));
+});
 
 window.addEventListener("keydown", (event) => {
-  if (["1", "2", "3", "4"].includes(event.key)) {
-    const target = moodKeys.find((button) => button.dataset.key === event.key);
-    setMood(target.dataset.mood, "keyboard");
+  const moodButton = moodButtons.find((button) => button.dataset.key === event.key);
+
+  if (moodButton) {
+    selectMood(moodButton.dataset.theme, `Keyboard key ${event.key}`);
   }
 
   if (event.code === "Space" && event.target.tagName !== "BUTTON") {
     event.preventDefault();
-    toggleTime();
+    toggleClock();
   }
 });
 
-orb.addEventListener("click", sendSignal);
-pauseButton.addEventListener("click", toggleTime);
-moodKeys.forEach((button) => button.addEventListener("click", () => setMood(button.dataset.mood, "control")));
-
-updateViewport();
+updateWindowSize();
 updateClock();
 window.setInterval(updateClock, 1000);
